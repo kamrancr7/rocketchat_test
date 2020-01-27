@@ -1,8 +1,13 @@
+import 'package:ddp/ddp.dart';
 import 'package:flutter/material.dart';
 import 'package:rocketchat_test/model/login_model.dart';
 import 'package:rocketchat_test/pages/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:rocketchat_test/realtime/client.dart';
+
+import 'models/models.dart';
 
 void main() => runApp(MyApp());
 
@@ -31,6 +36,27 @@ class _HomeScreenState extends State<HomeScreen> {
     loginModel = LoginModel.fromJson(json.decode(response.body));
 
     if (loginModel.status == "success") {
+
+      Client client = Client(
+          'testing',
+          Uri.parse(
+            'https://www.iamflexi.com/iamflexi'
+          ),
+          true);
+      client.addStatusListener((status) async {
+        if (status == ConnectStatus.connected) {
+          await client.login(UserCredentials()
+          ..email = 'sp_umar@live.com'
+            ..name = 'sp_umar@live.com'
+            ..password = 'a');
+          final channels = await client.getChannelsIn();
+          channels.forEach((channel) {
+            client.subRoomMessages(channel.id);
+          });
+          client.roomMessages().listen((data) => print(data.doc));
+        }
+      });
+
       Navigator.push(
         context,
          MaterialPageRoute(
